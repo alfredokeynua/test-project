@@ -20,6 +20,6 @@ phases:
       - aws cloudformation package --template-file samTemplate.yaml --s3-bucket codebuild-artifacts-110187550482 --output-template-file outputSamTemplate.yaml
 artifacts:
   type: zip
-    files:
-      - samTemplate.yaml
-      - outputSamTemplate.yaml
+  files:
+    - samTemplate.yaml
+    - outputSamTemplate.yaml
