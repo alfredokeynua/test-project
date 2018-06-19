@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       # Install dependencies needed for running tests
-      - npm install time
+      - npm install
 
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
@@ -17,7 +17,7 @@ phases:
       # Remove git folder
       - rm -rf node_modules
       - rm -rf .git
-      - npm install time
+      - npm install --production
       - aws cloudformation package --template-file samTemplate.yaml --s3-bucket codebuild-artifacts-110187550482 --output-template-file outputSamTemplate.yaml
 artifacts:
   type: zip
