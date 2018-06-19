@@ -12,7 +12,12 @@ phases:
     commands:
       # Discover and run unit tests in the 'tests' directory
       - npm test
+  build:
+    commands:
+      # Remove git folder
+      - rm -rf node_modules
+      - rm -rf .git
+      - npm install --production
 artifacts:
-  type: zip
   files:
     - '**/*'
