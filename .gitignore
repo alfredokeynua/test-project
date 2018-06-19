@@ -1,0 +1,28 @@
+# Hidden files
+# -----------------------------------
+._*
+*~
+.~lock.*
+
+# Temp files
+# -----------------------------------
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+.terraform
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+# -----------------------------------
+.buildpath
+.idea
+.project
+.settings
+nbproject
+node_modules
+
+# CONFIG files
+# -----------------------------------
+/*.tfvars
