@@ -23,7 +23,15 @@ exports.handler = (event, context, callback) => {
 				go: 'one',
 				two: 'test',
 				thre: 'hello',
-				other: 'world'
+				other: 'world',
+				go1: 'one',
+				two1: 'test',
+				thre1: 'hello',
+				other1: 'world',
+				go2: 'one',
+				two2: 'test',
+				thre2: 'hello',
+				other2: 'world'
 			}
 		}),
 	});
