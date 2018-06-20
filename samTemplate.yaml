@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Outputs the time
+Parameters:
+  EnvName:
+    Description: The environment name
+    Type: String
 Resources:
   TimeFunction:
     Type: AWS::Serverless::Function
@@ -8,6 +12,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs8.10
       CodeUri: ./
+      Environment:
+        Variables:
+          THE_ENV_NAME: !Ref EnvName
       Events:
         MyTimeApi:
           Type: Api
