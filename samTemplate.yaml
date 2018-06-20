@@ -12,6 +12,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs8.10
       CodeUri: ./
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: Canary10Percent10Minutes
       Environment:
         Variables:
           THE_ENV_NAME: !Ref EnvName
