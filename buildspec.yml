@@ -18,7 +18,7 @@ phases:
       - rm -rf node_modules
       - rm -rf .git
       - npm install --production
-      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket $S3Bucket --s3-prefix test-project-ABC/codebuild-ABC --output-template-file outputSamTemplate.yaml
+      - aws cloudformation package --template-file samTemplate.yaml --s3-bucket $S3Bucket --s3-prefix test-project-ABC/codebuild-ABC --output-template-file outputSamTemplate.yaml --
 artifacts:
   type: zip
   files:

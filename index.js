@@ -17,7 +17,8 @@ exports.handler = (event, context, callback) => {
 		},
 		body: JSON.stringify({
 			message: 'The time in Los Angeles is: ' + currentTime.toString(),
-			time: currentTime
+			time: currentTime,
+			env: process.env ? process.env.THE_ENV_NAME : 'NO ENV'
 		}),
 	});
 };
