@@ -13,11 +13,11 @@ exports.handler = (event, context, callback) => {
 	callback(null, {
 		statusCode: '200',
 		headers: {
-			'ContentType': 'application/json'
+			'Content-Type': 'application/json'
 		},
-		body: {
+		body: JSON.stringify({
 			message: 'The time in Los Angeles is: ' + currentTime.toString(),
 			time: currentTime
-		},
+		}),
 	});
 };
