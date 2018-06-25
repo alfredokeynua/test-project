@@ -16,7 +16,7 @@ export CBUILD_GIT_COMMIT=`git log -1 --pretty=%H`
 export CBUILD_GIT_TAG=`git describe --tags --abbrev=0`
 
 export CBUILD_PULL_REQUEST=false
-if [[ $CBUILD_GIT_BRANCH == pr-* ]] ; then
+if [[ $CBUILD_GIT_BRANCH == release-* ]] ; then
   export CBUILD_PULL_REQUEST=${CBUILD_GIT_BRANCH#pr-}
 fi
 

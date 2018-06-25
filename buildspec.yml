@@ -5,22 +5,12 @@ phases:
     commands:
       # Install dependencies needed for running tests
       - npm install
-      - printenv
+
+      # Make sure we have GIT information as env variables
+      #- printenv
       - chmod +x ./code-build-extras.sh
       - ./code-build-extras.sh
 
-      - THE_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
-      - echo "==> THE_GIT_BRANCH = $THE_GIT_BRANCH"
-      - echo $THE_GIT_BRANCH
-      - echo "-------------------------------"
-      - |
-        if [ "$CODEBUILD_GIT_BRANCH" == "" ] ; then
-          echo "ENTERING THIS LINE HEREEEEEEE"
-          CODEBUILD_GIT_BRANCH=`git branch -a --contains HEAD | sed -n 2p | awk '{ printf $1 }'`
-          export CODEBUILD_GIT_BRANCH=${CODEBUILD_GIT_BRANCH#remotes/origin/}
-        fi
-
-      - echo "==> CODEBUILD = $CODEBUILD_GIT_BRANCH"
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
   #pre_build:
