@@ -5,6 +5,8 @@ Parameters:
   EnvName:
     Description: The environment name
     Type: String
+Conditions:
+  UseCanary: !Equals [!Ref EnvName, prod]
 Resources:
   TimeFunction:
     Type: AWS::Serverless::Function
@@ -14,7 +16,7 @@ Resources:
       CodeUri: ./
       AutoPublishAlias: live
       DeploymentPreference:
-        Type: Canary10Percent10Minutes
+        Type: !If [UseCanary, Canary10Percent5Minutes, AllAtOnce]
       Environment:
         Variables:
           THE_ENV_NAME: !Ref EnvName
