@@ -6,8 +6,10 @@ phases:
       # Install dependencies needed for running tests
       - npm install
 
-      - export CODEBUILD_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
-      - echo "==> CODEBUILD = $CODEBUILD_GIT_BRANCH"
+      - THE_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
+      - echo "==> THE_GIT_BRANCH = $THE_GIT_BRANCH"
+      - echo $THE_GIT_BRANCH
+      - echo "-------------------------------"
       - |
         if [ "$CODEBUILD_GIT_BRANCH" == "" ] ; then
           echo "ENTERING THIS LINE HEREEEEEEE"
