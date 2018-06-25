@@ -5,6 +5,7 @@ phases:
     commands:
       # Install dependencies needed for running tests
       - npm install
+      - printenv
 
       - THE_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
       - echo "==> THE_GIT_BRANCH = $THE_GIT_BRANCH"
