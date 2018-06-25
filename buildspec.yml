@@ -7,7 +7,7 @@ phases:
       - npm install
 
       # Make sure we have GIT information as env variables
-      #- printenv
+      - printenv
       - chmod +x ./code-build-extras.sh
       - ./code-build-extras.sh
 
