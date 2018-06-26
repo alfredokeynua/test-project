@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       # Install dependencies needed for running tests
-      - npm install
+      - npm install --production
 
       # Make sure we have GIT information as env variables
       #- printenv
@@ -12,7 +12,7 @@ phases:
       - ./code-build-extras.sh
 
       # Upgrade AWS CLI to the latest version
-      - pip install --upgrade awscli
+      #- pip install --upgrade awscli
   #pre_build:
     #commands:
       # Discover and run unit tests in the 'tests' directory
@@ -20,10 +20,10 @@ phases:
   build:
     commands:
       # Remove git folder
-      - rm -rf node_modules
+      #- rm -rf node_modules
       - rm -rf .git
-      - npm install --production
-      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix "$S3_PREFIX/$CBUILD_NAME" --output-template-file $SAM_TEMPLATE_OUT
+      #- npm install --production
+      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix "$S3_PREFIX/aa$CBUILD_NAME" --output-template-file $SAM_TEMPLATE_OUT
 artifacts:
   type: zip
   files:
