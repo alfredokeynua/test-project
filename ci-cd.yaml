@@ -68,7 +68,7 @@ Resources:
         Path: !Sub "${AWS::StackName}"
         NamespaceType: NONE
         Name: "deployables"
-        Packaging: ZIP
+        Packaging: NONE
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
