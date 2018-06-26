@@ -63,12 +63,13 @@ Resources:
         GitCloneDepth: "1"
         BuildSpec: "buildspec.yml"
       Artifacts:
-        Type: S3
-        Location: !ImportValue "CI-CD-ArtifactBucket"
-        Path: !Sub "${AWS::StackName}"
-        NamespaceType: NONE
-        Name: "deployables"
-        Packaging: NONE
+        Type: NO_ARTIFACTS
+#        Type: S3
+#        Location: !ImportValue "CI-CD-ArtifactBucket"
+#        Path: !Sub "${AWS::StackName}"
+#        NamespaceType: NONE
+#        Name: "deployables"
+#        Packaging: NONE
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL

@@ -7,7 +7,7 @@ phases:
       - npm install
 
       # Make sure we have GIT information as env variables
-      #- printenv
+      - printenv
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
 
       # Upgrade AWS CLI to the latest version
@@ -19,7 +19,7 @@ phases:
   build:
     commands:
       - |
-        if [ "$GIT_PULL_REQUEST" == "true" ] ; then
+        if [ "$GIT_PULL_REQUEST" = "true" ]; then
           # Build for production
           rm -rf node_modules
           npm install --production
@@ -35,10 +35,10 @@ phases:
           rm README.md
 
           # Package source code to S3 and generate Output SAM template
-          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
+          #aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $
 
           # Zip the deployable
-          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
+          #zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
         fi
 artifacts:
   files:
