@@ -43,7 +43,8 @@ phases:
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
           # Zip the deployable
-          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
+          echo "${GIT_COMMIT}" > commit.txt
+          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
 
           # Upload the deployable
           aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
