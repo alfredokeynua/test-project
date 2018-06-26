@@ -7,10 +7,7 @@ phases:
       - npm install
 
       # Make sure we have GIT information as env variables
-      - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
-
-      # We add a file names commit.txt with the git info
-      - echo "${GIT_COMMIT}" > commit.txt
+      - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && cat ./__env_vars.sh > commit.txt && rm ./__env_vars.sh
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
