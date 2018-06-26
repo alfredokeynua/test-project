@@ -20,7 +20,7 @@ exports.handler = (event, context, callback) => {
 			time: currentTime,
 			env: process.env ? process.env.THE_ENV_NAME : 'NO ENV',
 			sample: {
-				go: 'one',
+				go: 'one11',
 				two: 'test',
 				thre: 'hello',
 				other: 'world',
