@@ -17,27 +17,25 @@ phases:
       #- npm test
   build:
     commands:
-      - >
-        if expr "${GIT_PULL_REQUEST}" = 'false' >/dev/null; then
-          # Build for production
-          rm -rf node_modules
-          npm install --production
+      - chmod +x ./build.sh
+      - ./build.sh
 
-          # Remove unnecessary files
-          rm -rf .git
-          rm code-build-extras.sh
-          rm ci-cd.yaml
-          rm buildspec.yml
-          rm .gitignore
-          rm package.json
-          rm package-lock.json
-          rm README.md
+      # Build for production
+      - rm -rf node_modules
+      - npm install --production
 
-          # Package source code to S3 and generate Output SAM template
-          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
-        else
-          echo "IT IS A PULL REQUEST SO DO NOTHING FOR PRODUCTION"
-        fi
+      # Remove unnecessary files
+      - rm -rf .git
+      - rm code-build-extras.sh
+      - rm ci-cd.yaml
+      - rm buildspec.yml
+      - rm .gitignore
+      - rm package.json
+      - rm package-lock.json
+      - rm README.md
+
+      # Package source code to S3 and generate Output SAM template
+      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
       # Zip the deployable
       - zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
