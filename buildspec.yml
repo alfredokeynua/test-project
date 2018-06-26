@@ -65,7 +65,7 @@ phases:
           export PIPELINE_NAME=""
         fi
       - |
-        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+        if expr "${GIT_PULL_REQUEST}" : "true" >/dev/null; then
           export PIPELINE_NAME=""
         fi
       - |
