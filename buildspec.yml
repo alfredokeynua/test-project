@@ -42,7 +42,7 @@ phases:
           # Determine the deployable zip file name based on the branch
           export ZIP_NAME="$GIT_BRANCH.zip"
           if [ "$GIT_BRANCH" == "release-*" ] ; then
-            export ZIP_NAME="master.zip"
+            export ZIP_NAME="int.zip"
           fi
 
           # Package source code to S3 and generate Output SAM template

@@ -4,6 +4,8 @@ aws cloudformation deploy \
 --region us-east-1 \
 --stack-name sample-project \
 --template-file ci-cd.yaml \
+--parameter-overrides \
+DevelopmentAccountId=561082811712 \
 --tags \
 ManageFrom=CLI \
 ManageType=CLI \
