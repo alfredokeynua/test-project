@@ -17,8 +17,10 @@ phases:
       #- npm test
   build:
     commands:
-      - chmod +x ./build.sh
-      - ./build.sh
+      - chmod +x ./scripts/build.sh
+      - echo "OUTSIDE IS "
+      - pwd
+      - ./scripts/build.sh
 
       # Build for production
       - rm -rf node_modules
