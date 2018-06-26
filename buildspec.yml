@@ -20,9 +20,9 @@ phases:
     commands:
       # Remove git folder
       #- rm -rf node_modules
+      - ./code-build-extras.sh
       - rm -rf .git
       #- npm install --production
-      - ./code-build-extras.sh
       - echo "==> CBUILD_NAME_BEFORE = $CBUILD_NAME"
       - echo "==> SAM_TEMPLATE_IN = $SAM_TEMPLATE_IN"
       - echo "==> aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix $CBUILD_NAME --output-template-file $SAM_TEMPLATE_OUT"
