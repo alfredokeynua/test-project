@@ -9,7 +9,7 @@ phases:
       # Make sure we have GIT information as env variables
       #- printenv
       - chmod +x ./code-build-extras.sh
-      - ./code-build-extras.sh
+      - . ./code-build-extras.sh
       - echo "==> CBUILD_NAME_INSTALL = $CBUILD_NAME"
 
       # Upgrade AWS CLI to the latest version
