@@ -17,28 +17,34 @@ phases:
       #- npm test
   build:
     commands:
-      # Build for production
-      - rm -rf node_modules
-      - npm install --production
-
-      # Remove unnecessary files
-      - rm -rf .git
-      - rm code-build-extras.sh
-      - rm ci-cd.yaml
-      - rm buildspec.yml
-      - rm .gitignore
-      - rm package.json
-      - rm package-lock.json
-      - rm README.md
-
       - |
-        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+        if expr "${GIT_PULL_REQUEST}" : "true" >/dev/null; then
+          # Build for production
+          rm -rf node_modules
+          npm install --production
+
+          # Remove unnecessary files
+          rm -rf .git
+          rm code-build-extras.sh
+          rm ci-cd.yaml
+          rm buildspec.yml
+          rm .gitignore
+          rm package.json
+          rm package-lock.json
+          rm README.md
+
+          # Determine the deployable zip file name based on the branch
+          export ZIP_NAME="$GIT_BRANCH.zip"
+          if [ "$GIT_BRANCH" == "release-*" ] ; then
+            export ZIP_NAME="master.zip"
+          fi
+
           # Package source code to S3 and generate Output SAM template
-          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
+          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
           # Zip the deployable
           zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
 
           # Upload the deployable
-          aws s3api put-object --bucket $S3_BUCKET --key "$S3_PREFIX/deployables/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
         fi

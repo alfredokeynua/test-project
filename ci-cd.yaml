@@ -77,8 +77,10 @@ Resources:
         EnvironmentVariables:
           - Name: S3_BUCKET
             Value: !ImportValue "CI-CD-ArtifactBucket"
-          - Name: S3_PREFIX
+          - Name: S3_BUILDS_PREFIX
             Value: !Sub "${AWS::StackName}/builds"
+          - Name: S3_ARTIFACTS_PREFIX
+            Value: !Sub "${AWS::StackName}/artifacts"
           - Name: SAM_TEMPLATE_IN
             Value: "samTemplate.yaml"
           - Name: SAM_TEMPLATE_OUT
