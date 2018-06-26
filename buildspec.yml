@@ -62,4 +62,4 @@ phases:
 
         - aws configure list
 
-        - aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms --verbose
+        - aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/2$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
