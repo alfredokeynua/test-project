@@ -39,5 +39,6 @@ phases:
       - zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
 
       # Upload the deployable
-      - aws s3api put-object --bucket $S3_BUCKET --key "$S3_PREFIX/deployables/$ZIP_NAME" --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+      - aws s3api put-object --bucket $S3_BUCKET --key "$S3_PREFIX/deployables/$ZIP_NAME"
+       #--ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
 
