@@ -12,10 +12,11 @@ phases:
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
-  #pre_build:
-    #commands:
+  pre_build:
+    commands:
       # Discover and run unit tests in the 'tests' directory
       #- npm test
+      - echo "==> CBUILD_NAME_PREBUILD = $CBUILD_NAME"
   build:
     commands:
       # Remove git folder
