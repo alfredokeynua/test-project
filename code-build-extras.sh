@@ -21,7 +21,7 @@ export GIT_TAG=`git describe --tags --abbrev=0`
 # -------------------------------------------------------------
 export BUILD_NAME="$GIT_COMMIT_SHORT-$GIT_BRANCH"
 if [ -n "$GIT_TAG" ]; then
-	export BUILD_NAME="$GIT_TAG-$BUILD_NAME"
+	export BUILD_NAME="$BUILD_NAME-$GIT_TAG"
 fi
 
 # Determine if it is a pull request

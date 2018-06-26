@@ -18,25 +18,28 @@ phases:
       #- npm test
   build:
     commands:
-      # Build for production
-      - rm -rf node_modules
-      - npm install --production
+      - |
+        if [ "$GIT_PULL_REQUEST" == "true" ] ; then
+          # Build for production
+          rm -rf node_modules
+          npm install --production
 
-      # Remove unnecessary files
-      - rm -rf .git
-      - rm code-build-extras.sh
-      - rm ci-cd.yaml
-      - rm buildspec.yml
-      - rm .gitignore
-      - rm package.json
-      - rm package-lock.json
-      - rm README.md
+          # Remove unnecessary files
+          rm -rf .git
+          rm code-build-extras.sh
+          rm ci-cd.yaml
+          rm buildspec.yml
+          rm .gitignore
+          rm package.json
+          rm package-lock.json
+          rm README.md
 
-      # Package source code to S3 and generate Output SAM template
-      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
+          # Package source code to S3 and generate Output SAM template
+          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
 
-      # Zip the deployable
-      - zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
+          # Zip the deployable
+          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
+        fi
 artifacts:
   files:
     - $ZIP_NAME
