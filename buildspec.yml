@@ -35,6 +35,11 @@ phases:
       # Package source code to S3 and generate Output SAM template
       - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
+      - |
+        if expr "${GIT_BRANCH}" = 'dev'; then
+          echo "THIS IS THE DEV BRANCH"
+        fi
+
       # Zip the deployable
       - zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
 
