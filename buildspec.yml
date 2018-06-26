@@ -45,8 +45,9 @@ phases:
       # Upload the deployable
       - aws s3api put-object --bucket $S3_BUCKET --key "$S3_PREFIX/deployables/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
 
-      - if expr "${GIT_PULL_REQUEST}" = "false"; then
-      - echo "NO ES PULL REQUEST"
-      - else
-      - echo "SI ES PULL REQUEST"
-      - fi
+      - |
+        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+          echo "NO ES PULL REQUEST"
+        else
+          echo "SI ES PULL REQUEST"
+        fi
