@@ -47,6 +47,7 @@ phases:
 
       - |
         if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+          # THIS SHOULD NOT PRINT
           echo "NO ES PULL REQUEST"
         else
           echo "SI ES PULL REQUEST"
