@@ -40,26 +40,24 @@ phases:
           rm README.md
 
           # Determine the deployable zip file name based on the branch
-          export ZIP_NAME="$GIT_BRANCH"
+          export ENV_ID="$GIT_BRANCH"
           if [ "$GIT_BRANCH" == "release-*" ] ; then
-            export ZIP_NAME="int"
+            export ENV_ID="int"
           fi
 
           # Package source code to S3 and generate Output SAM template
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
           # Zip the deployable
-          zip $ZIP_NAME.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
+          zip $ENV_ID.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
 
           # Upload the deployable
-          #aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
-
-          # Start the pipeline
-          #aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ZIP_NAME
+          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ENV_ID.zip" --body $ENV_ID.zip --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
         fi
-
-        - aws --version
-
-        - aws configure list
-
-        - aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/2$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+  post_build:
+    commands:
+      - |
+        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+          # Start the pipeline
+          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ENV_ID
+        fi
