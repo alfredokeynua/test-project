@@ -33,6 +33,36 @@ if [[ $CODEBUILD_SOURCE_VERSION == pr/* ]] ; then
   export BUILD_NAME="$BUILD_NAME-$PULL_REQUEST_ID"
 fi
 
+# Determine the deployable zip file name based on the branch
+# -------------------------------------------------------------
+export ZIP_FOR_DEV="dev.zip"
+export ZIP_FOR_PROD="master.zip"
+export ZIP_NAME=""
+if [ "$GIT_BRANCH" == "dev" ] ; then
+  export ZIP_NAME="dev.zip"
+fi
+if [ "$GIT_BRANCH" == "release-*" ] ; then
+  export ZIP_NAME="master.zip"
+fi
+if [ "$GIT_BRANCH" == "master" ] ; then
+  export ZIP_NAME="master.zip"
+fi
+
+# Clear the zip name when it is a pull request
+# -------------------------------------------------------------
+if [ "$IS_PULL_REQUEST" == "true" ] ; then
+  export ZIP_NAME=""
+fi
+
+# Echo the export commands to include in the build-spec.yml
+# -------------------------------------------------------------
+# In the buildspec.yml run:
+# - chmod +x ./code-build-extra.sh
+# - ./code-build-extra.sh > temp.sh
+# - . ./temp.sh
+# - rm ./temp.sh
+# - echo $GIT_NAME
+# -------------------------------------------------------------
 echo "export GIT_AUTHOR=\"$GIT_AUTHOR\""
 echo "export GIT_AUTHOR_EMAIL=\"$GIT_AUTHOR_EMAIL\""
 echo "export GIT_BRANCH=\"$GIT_BRANCH\""
@@ -41,3 +71,4 @@ echo "export GIT_MESSAGE=\"$GIT_MESSAGE\""
 echo "export GIT_TAG=\"$GIT_TAG\""
 echo "export GIT_PULL_REQUEST=\"$IS_PULL_REQUEST\""
 echo "export GIT_NAME=\"$BUILD_NAME\""
+echo "export ZIP_NAME=\"$ZIP_NAME\""
