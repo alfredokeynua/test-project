@@ -7,7 +7,6 @@ phases:
       - npm install
 
       # Make sure we have GIT information as env variables
-      - printenv
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
 
       # Upgrade AWS CLI to the latest version
@@ -18,26 +17,26 @@ phases:
       #- npm test
   build:
     commands:
-      # Build for production
-      - rm -rf node_modules
-      - npm install --production
-
-      # Remove unnecessary files
-      - rm -rf .git
-      - rm code-build-extras.sh
-      - rm ci-cd.yaml
-      - rm buildspec.yml
-      - rm .gitignore
-      - rm package.json
-      - rm package-lock.json
-      - rm README.md
-
-      # Package source code to S3 and generate Output SAM template
-      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
-
       - |
-        if expr "${GIT_BRANCH}" = 'dev'; then
-          echo "THIS IS THE DEV BRANCH"
+        if expr "${GIT_PULL_REQUEST}" = 'false' >/dev/null; then
+          # Build for production
+          rm -rf node_modules
+          npm install --production
+
+          # Remove unnecessary files
+          rm -rf .git
+          rm code-build-extras.sh
+          rm ci-cd.yaml
+          rm buildspec.yml
+          rm .gitignore
+          rm package.json
+          rm package-lock.json
+          rm README.md
+
+          # Package source code to S3 and generate Output SAM template
+          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/builds/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
+        else
+          echo "IT IS A PULL REQUEST SO DO NOTHING FOR PRODUCTION"
         fi
 
       # Zip the deployable
