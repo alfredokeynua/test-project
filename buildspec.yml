@@ -16,7 +16,7 @@ phases:
       - cat commit.txt
 
       # Upgrade AWS CLI to the latest version
-      #- pip install --upgrade awscli
+      - pip install --upgrade awscli
 #  pre_build:
 #    commands:
       # Discover and run unit tests in the 'tests' directory
@@ -57,6 +57,8 @@ phases:
           # Start the pipeline
           #aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ZIP_NAME
         fi
+
+        - aws --version
 
         - aws configure list
 
