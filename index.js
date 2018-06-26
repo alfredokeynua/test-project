@@ -21,7 +21,7 @@ exports.handler = (event, context, callback) => {
 			env: process.env ? process.env.THE_ENV_NAME : 'NO ENV',
 			sample: {
 				go: 'Deployments work!! Automatically!!',
-				two: 'test',
+				two: 'test YEYYYYYYY',
 				thre: 'hello',
 				other: 'world',
 				go1: 'one',
