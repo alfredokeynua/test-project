@@ -45,9 +45,9 @@ phases:
 
       # Echo variables for debugging purposes
       - cat commit.txt
-      - echo "ENV_ID: $ENV_ID"
-      - echo "ZIP_NAME: $ZIP_NAME"
-      - echo "PIPELINE_NAME: $PIPELINE_NAME"
+      - echo "ENV_ID=${ENV_ID}"
+      - echo "ZIP_NAME=${ZIP_NAME}"
+      - echo "PIPELINE_NAME=${PIPELINE_NAME}"
 
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
@@ -84,6 +84,7 @@ phases:
         fi
   post_build:
     commands:
+      # Run the pipeline
       - |
         if expr "${PIPELINE_NAME}" != "" >/dev/null; then
           # Start the pipeline
