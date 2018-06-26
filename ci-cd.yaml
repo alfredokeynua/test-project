@@ -50,6 +50,10 @@ Description: Example template that creates a CodePipeline and deploys a project 
 
 Resources:
 
+  # Create the CodeBuild project that will run each time a pull
+  # request or push is made.
+  # You will need to manually set the webhook through the AWS console
+  # by editing this project and specifying the branch filter to '(dev|master|release-.*)'
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -64,12 +68,6 @@ Resources:
         BuildSpec: "buildspec.yml"
       Artifacts:
         Type: NO_ARTIFACTS
-#        Type: S3
-#        Location: !ImportValue "CI-CD-ArtifactBucket"
-#        Path: !Sub "${AWS::StackName}"
-#        NamespaceType: NONE
-#        Name: "deployables"
-#        Packaging: NONE
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
