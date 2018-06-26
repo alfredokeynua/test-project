@@ -41,8 +41,11 @@ phases:
 
           # Determine the deployable zip file name based on the branch
           export ENV_ID="$GIT_BRANCH"
-          if [ "$GIT_BRANCH" == "release-*" ] ; then
+          if [ "$GIT_BRANCH" == "master" ] ; then
             export ENV_ID="int"
+          fi
+          if [ "$GIT_BRANCH" == "release-*" ] ; then
+            export ENV_ID="prod"
           fi
 
           # Package source code to S3 and generate Output SAM template
@@ -59,5 +62,5 @@ phases:
       - |
         if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
           # Start the pipeline
-          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ENV_ID
+          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ENV_ID-pipeline
         fi
