@@ -4,33 +4,42 @@ phases:
   install:
     commands:
       # Install dependencies needed for running tests
-      - npm install --production
+      - npm install
 
       # Make sure we have GIT information as env variables
       #- printenv
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
-      - echo "==> CBUILD_NAME_INSTALL = $GIT_NAME"
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
-  pre_build:
-    commands:
+#  pre_build:
+#    commands:
       # Discover and run unit tests in the 'tests' directory
       #- npm test
-      - echo "==> CBUILD_NAME_PREBUILD = $GIT_NAME"
   build:
     commands:
-      # Remove git folder
-      #- rm -rf node_modules
-      - echo "==> CBUILD_NAME_BEFORE_A = $GIT_NAME"
+      # Build for production
+      - rm -rf node_modules
+      - npm install --production
+
+      # Remove unnecessary files
       - rm -rf .git
-      #- npm install --production
-      - echo "==> CBUILD_NAME_BEFORE = $GIT_NAME"
-      - echo "==> SAM_TEMPLATE_IN = $SAM_TEMPLATE_IN"
-      - echo "==> aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT"
+      - rm code-build-extras.sh
+      - rm ci-cd.yaml
+      - rm buildspec.yml
+      - rm .gitignore
+      - rm package.json
+      - rm package-lock.json
+      - rm README.md
+
+      # Package source code to S3 and generate Output SAM template
       - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
+
+      # Zip the deployable
+      zip output.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
 artifacts:
-  type: zip
+  #type: zip
   files:
     - $SAM_TEMPLATE_IN
     - $SAM_TEMPLATE_OUT
+    - output.zip
