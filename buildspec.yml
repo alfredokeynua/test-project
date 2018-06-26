@@ -36,7 +36,7 @@ phases:
       - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
 
       # Zip the deployable
-      zip output.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
+      - zip output.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
 artifacts:
   #type: zip
   files:
