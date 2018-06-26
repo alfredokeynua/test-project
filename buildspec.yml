@@ -21,6 +21,7 @@ phases:
       # Remove git folder
       #- rm -rf node_modules
       - ./code-build-extras.sh
+      - echo "==> CBUILD_NAME_BEFORE_A = $CBUILD_NAME"
       - rm -rf .git
       #- npm install --production
       - echo "==> CBUILD_NAME_BEFORE = $CBUILD_NAME"
