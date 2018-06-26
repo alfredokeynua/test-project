@@ -10,7 +10,7 @@ phases:
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
 
       # We add a file names commit.txt with the git info
-      echo "${GIT_COMMIT}" > commit.txt
+      - echo "${GIT_COMMIT}" > commit.txt
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
