@@ -82,6 +82,8 @@ Resources:
             Value: "samTemplate.yaml"
           - Name: SAM_TEMPLATE_OUT
             Value: "outputSamTemplate.yaml"
+          - Name: PIPELINE_NAME_PREFIX
+            Value: !Sub "${AWS::StackName}"
       TimeoutInMinutes: 10
       Tags:
         - Key: Name
