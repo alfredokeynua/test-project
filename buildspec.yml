@@ -13,7 +13,41 @@ phases:
       - echo "GIT_COMMIT=\"${GIT_COMMIT}\"" > commit.txt
       - echo "GIT_BRANCH=\"${GIT_BRANCH}\"" >> commit.txt
       - echo "GIT_PULL_REQUEST=\"${GIT_PULL_REQUEST}\"" >> commit.txt
+
+      # Determine the environment id to use for the zip and pipeline
+      - export ENV_ID=""
+      - export ZIP_NAME=""
+      - export PIPELINE_NAME=""
+      - |
+        if expr "${GIT_BRANCH}" : "dev" >/dev/null; then
+          export ENV_ID="dev"
+          export ZIP_NAME="dev.zip"
+          # export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-dev-pipeline"
+        fi
+        if expr "${GIT_BRANCH}" : "master" >/dev/null; then
+          export ENV_ID="int"
+          export ZIP_NAME="int.zip"
+          export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-int-pipeline"
+        fi
+        if expr "${GIT_BRANCH}" : "release-*" >/dev/null; then
+          export ENV_ID="prod"
+          export ZIP_NAME="prod.zip"
+          export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-prod-pipeline"
+        fi
+
+      # For pull requests clear deployment variables
+      - |
+        if expr "${GIT_PULL_REQUEST}" : "true" >/dev/null; then
+          export ZIP_NAME=""
+          export PIPELINE_NAME=""
+          echo "CHANGING PIPELINE_NAME TO NULL IN PULL REQUEST"
+        fi
+
+      # Echo variables for debugging purposes
       - cat commit.txt
+      - echo "ENV_ID: $ENV_ID"
+      - echo "ZIP_NAME: $ZIP_NAME"
+      - echo "PIPELINE_NAME: $PIPELINE_NAME"
 
       # Upgrade AWS CLI to the latest version
       - pip install --upgrade awscli
@@ -24,7 +58,7 @@ phases:
   build:
     commands:
       - |
-        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+        if expr "${ZIP_NAME}" != "" >/dev/null; then
           # Build for production
           rm -rf node_modules
           npm install --production
@@ -39,35 +73,17 @@ phases:
           rm package-lock.json
           rm README.md
 
-          # Determine the deployable zip file name based on the branch
-          export ENV_ID="$GIT_BRANCH"
-          if [ "$GIT_BRANCH" == "master" ] ; then
-            export ENV_ID="int"
-          fi
-          if [ "$GIT_BRANCH" == "release-*" ] ; then
-            export ENV_ID="prod"
-          fi
-
           # Package source code to S3 and generate Output SAM template
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
           # Zip the deployable
-          zip $ENV_ID.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
+          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
 
           # Upload the deployable
-          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ENV_ID.zip" --body $ENV_ID.zip --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
         fi
   post_build:
     commands:
-      - |
-        export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-$ENV_ID-pipeline"
-        if expr "${ENV_ID}" : "dev" >/dev/null; then
-          export PIPELINE_NAME=""
-        fi
-      - |
-        if expr "${GIT_PULL_REQUEST}" : "true" >/dev/null; then
-          export PIPELINE_NAME=""
-        fi
       - |
         if expr "${PIPELINE_NAME}" != "" >/dev/null; then
           # Start the pipeline
