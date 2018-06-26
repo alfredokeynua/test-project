@@ -7,8 +7,13 @@ phases:
       - npm install
 
       # Make sure we have GIT information as env variables
-      #- printenv
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
+
+      # We add a file names commit.txt with the git info
+      - echo "GIT_COMMIT=\"${GIT_COMMIT}\"" > commit.txt
+      - echo "GIT_BRANCH=\"${GIT_BRANCH}\"" >> commit.txt
+      - echo "GIT_PULL_REQUEST=\"${GIT_PULL_REQUEST}\"" >> commit.txt
+      - cat commit.txt
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
@@ -18,25 +23,34 @@ phases:
       #- npm test
   build:
     commands:
-      # Build for production
-      - rm -rf node_modules
-      - npm install --production
+      - |
+        if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+          # Build for production
+          rm -rf node_modules
+          npm install --production
 
-      # Remove unnecessary files
-      - rm -rf .git
-      - rm code-build-extras.sh
-      - rm ci-cd.yaml
-      - rm buildspec.yml
-      - rm .gitignore
-      - rm package.json
-      - rm package-lock.json
-      - rm README.md
+          # Remove unnecessary files
+          rm -rf .git
+          rm code-build-extras.sh
+          rm ci-cd.yaml
+          rm buildspec.yml
+          rm .gitignore
+          rm package.json
+          rm package-lock.json
+          rm README.md
 
-      # Package source code to S3 and generate Output SAM template
-      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
+          # Determine the deployable zip file name based on the branch
+          export ZIP_NAME="$GIT_BRANCH.zip"
+          if [ "$GIT_BRANCH" == "release-*" ] ; then
+            export ZIP_NAME="master.zip"
+          fi
 
-      # Zip the deployable
-      - zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT
-artifacts:
-  files:
-    - $ZIP_NAME
+          # Package source code to S3 and generate Output SAM template
+          aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
+
+          # Zip the deployable
+          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
+
+          # Upload the deployable
+          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+        fi
