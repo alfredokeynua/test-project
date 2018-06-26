@@ -19,9 +19,9 @@ export GIT_TAG=`git describe --tags --abbrev=0`
 
 # Build a name that contains the Branch-Commit-(Tag)
 # -------------------------------------------------------------
-export BUILD_NAME="$GIT_BRANCH-$GIT_COMMIT_SHORT"
+export BUILD_NAME="$GIT_COMMIT_SHORT-$GIT_BRANCH"
 if [ -n "$GIT_TAG" ]; then
-	export BUILD_NAME="$BUILD_NAME-$GIT_TAG"
+	export BUILD_NAME="$GIT_TAG-$BUILD_NAME"
 fi
 
 # Determine if it is a pull request
