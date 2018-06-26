@@ -60,7 +60,16 @@ phases:
   post_build:
     commands:
       - |
+        export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-$ENV_ID-pipeline"
+        if expr "${ENV_ID}" : "dev" >/dev/null; then
+          export PIPELINE_NAME=""
+        fi
+      - |
         if expr "${GIT_PULL_REQUEST}" : "false" >/dev/null; then
+          export PIPELINE_NAME=""
+        fi
+      - |
+        if expr "${PIPELINE_NAME}" != "" >/dev/null; then
           # Start the pipeline
-          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ENV_ID-pipeline
+          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME
         fi
