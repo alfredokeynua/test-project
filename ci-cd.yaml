@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Example template that creates a CodePipeline and deploys a project cross accounts.
+#Parameters:
+#  ProjectName:
+#    Description: Name of the Project
+#    Type: String
+#    Default: my-test-lambda
+#
+#  CodePipelinePreReqStackName:
+#    Description: The stack name of the CodePipeline Pre requisites
+#    Type: String
+#    Default: CodePipelinePreReq
+#
+#  GitHubOAuthToken:
+#    Description: Create a token with 'repo' and 'admin:repo_hook' permissions here https://github.com/settings/tokens
+#    Type: String
+#
+#  GitHubUser:
+#    Description: Enter GitHub username of the repository owner
+#    Type: String
+#
+#  GitHubRepository:
+#    Description: Enter the repository name that should be monitored for changes
+#    Type: String
+#
+#  GitHubBranch:
+#    Description: Enter the GitHub branch to monitor
+#    Type: String
+#    Default: master
+#
+#  DevelopmentAccountId:
+#    Description: AWS Development Account id
+#    Type: String
+#    Default: ""
+#
+#  IntegrationAccountId:
+#    Description: AWS Integration Account id
+#    Type: String
+#    Default: ""
+#
+#  StagingAccountId:
+#    Description: AWS Staging Account id
+#    Type: String
+#    Default: ""
+#
+#  ProductionAccountId:
+#    Description: AWS Production Account id
+#    Type: String
+#    Default: ""
+
+Resources:
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${AWS::StackName}"
+      Description: !Sub "${AWS::StackName} CodeBuild project used by CodePipeline"
+      EncryptionKey: !ImportValue "CI-CD-KMSKeyArn"
+      ServiceRole: !ImportValue "CI-CD-CodeBuildServiceRoleArn"
+      Source:
+        Type: GITHUB
+        Location: "https://github.com/alfredokeynua/test-project.git"
+        GitCloneDepth: "1"
+        BuildSpec: "buildspec.yml"
+      Artifacts:
+        Type: S3
+        Location: !ImportValue "CI-CD-ArtifactBucket"
+        Path: !Sub "${AWS::StackName}"
+        NamespaceType: NONE
+        Name: "deployables"
+        Packaging: ZIP
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/nodejs:8.11.0
+        EnvironmentVariables:
+          - Name: S3_BUCKET
+            Value: !ImportValue "CI-CD-ArtifactBucket"
+          - Name: S3_PREFIX
+            Value: !Sub "${AWS::StackName}/builds"
+          - Name: SAM_TEMPLATE_IN
+            Value: "samTemplate.yaml"
+          - Name: SAM_TEMPLATE_OUT
+            Value: "outputSamTemplate.yaml"
+      TimeoutInMinutes: 10
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}"
+
+#  Pipeline:
+#    Type: AWS::CodePipeline::Pipeline
+#    Properties:
+#      RoleArn: !ImportValue "CI-CD-CodePipelineServiceRoleArn"
+#      Name: !Ref ProjectName
+#      ArtifactStore:
+#        Type: S3
+#        Location: !ImportValue "CI-CD-ArtifactBucket"
+#        EncryptionKey:
+#          Id: !ImportValue "CI-CD-KMSKey"
+#          Type: KMS
+#      Stages:
+#        - Name: Source
+#          Actions:
+#            - Name: Github
+#              ActionTypeId:
+#                Category: Source
+#                Owner: ThirdParty
+#                Version: 1
+#                Provider: GitHub
+#              Configuration:
+#                  Owner: !Ref GitHubUser
+#                  Repo: !Ref GitHubRepository
+#                  Branch: !Ref GitHubBranch
+#                  OAuthToken: !Ref GitHubOAuthToken
+#                  PollForSourceChanges: false
+#              OutputArtifacts:
+#                - Name: SourceCodeCheckout
+#              RunOrder: 1
+#
+#        - Name: Build
+#          Actions:
+#            - Name: Build
+#              InputArtifacts:
+#                - Name: SourceCodeCheckout
+#              ActionTypeId:
+#                Category: Build
+#                Owner: AWS
+#                Version: 1
+#                Provider: CodeBuild
+#              Configuration:
+#                ProjectName: !Ref CodeBuildProject
+#              RunOrder: 1
+#              OutputArtifacts:
+#                - Name: BuildOutput
+#
+#        - Name: DeployToInt
+#          Actions:
+#            - Name: CreateChangeSet
+#              InputArtifacts:
+#                - Name: BuildOutput
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Version: 1
+#                Provider: CloudFormation
+#              Configuration:
+#                ChangeSetName: !Sub "${ProjectName}-change-set-int"
+#                ActionMode: "CHANGE_SET_REPLACE"
+#                StackName: !Sub "${ProjectName}-int"
+#                Capabilities: CAPABILITY_NAMED_IAM
+#                TemplatePath: BuildOutput::outputSamTemplate.yaml
+#                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+#                ParameterOverrides: !Sub |
+#                  {
+#                    "EnvName": "int"
+#                  }
+#              RunOrder: 1
+#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#
+#            - Name: DeployChangeSetInt
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Version: 1
+#                Provider: CloudFormation
+#              Configuration:
+#                ChangeSetName: !Sub ${ProjectName}-int-change-set
+#                ActionMode: CHANGE_SET_EXECUTE
+#                StackName: !Sub ${ProjectName}-int
+#                RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#              InputArtifacts:
+#                - Name: BuildOutput
+#              RunOrder: 2
+#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#
+#        - Name: DeployToStaging
+#          Actions:
+#            - Name: CreateChangeSetStg
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Version: 1
+#                Provider: CloudFormation
+#              Configuration:
+#                ChangeSetName: !Sub ${ProjectName}-stg-change-set
+#                ActionMode: CHANGE_SET_REPLACE
+#                StackName: !Sub ${ProjectName}-stg
+#                Capabilities: CAPABILITY_NAMED_IAM
+#                TemplatePath: BuildOutput::outputSamTemplate.yaml
+#                ParameterOverrides: !Sub |
+#                  {
+#                    "EnvName": "THIS_IS_STAGING"
+#                  }
+#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#              InputArtifacts:
+#                - Name: BuildOutput
+#              RunOrder: 1
+#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#
+#            - Name: DeployChangeSetStg
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Version: 1
+#                Provider: CloudFormation
+#              Configuration:
+#                ChangeSetName: !Sub ${ProjectName}-stg-change-set
+#                ActionMode: CHANGE_SET_EXECUTE
+#                StackName: !Sub ${ProjectName}-stg
+#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#              InputArtifacts:
+#                - Name: BuildOutput
+#              RunOrder: 2
+#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#

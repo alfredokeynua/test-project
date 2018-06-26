@@ -23,10 +23,9 @@ phases:
       - rm -rf node_modules
       - rm -rf .git
       - npm install --production
-      #- aws cloudformation package --template-file $InSamFileName --s3-bucket $S3Bucket --s3-prefix "$S3Prefix/$CBUILD_NAME" --output-template-file $OutSamFileName
-      - aws cloudformation package --template-file $InSamFileName --s3-bucket $S3Bucket --s3-prefix "$S3Prefix" --output-template-file $OutSamFileName
+      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix "$S3_PREFIX/$CBUILD_NAME" --output-template-file $SAM_TEMPLATE_OUT
 artifacts:
   type: zip
   files:
-    - samTemplate.yaml
-    - $OutSamFileName
+    - $SAM_TEMPLATE_IN
+    - $SAM_TEMPLATE_OUT

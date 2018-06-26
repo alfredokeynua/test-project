@@ -1,4 +1,17 @@
 AJA THIS IS DEV
+```
+aws cloudformation deploy \
+--region us-east-1 \
+--stack-name sample-project \
+--template-file ci-cd.yaml \
+--tags \
+ManageFrom=CLI \
+ManageType=CLI \
+Environment=Ops \
+ProjectName=AWS-Management \
+--profile operations_account_profile
+```
+
 Welcome to the AWS CodeStar sample web service
 ==============================================
 THIS CHANGED
