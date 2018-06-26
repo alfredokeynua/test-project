@@ -8,9 +8,8 @@ phases:
 
       # Make sure we have GIT information as env variables
       #- printenv
-      - chmod +x ./code-build-extras.sh
-      - . ./code-build-extras.sh
-      - echo "==> CBUILD_NAME_INSTALL = $CBUILD_NAME"
+      - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
+      - echo "==> CBUILD_NAME_INSTALL = $GIT_NAME"
 
       # Upgrade AWS CLI to the latest version
       #- pip install --upgrade awscli
@@ -18,24 +17,18 @@ phases:
     commands:
       # Discover and run unit tests in the 'tests' directory
       #- npm test
-      - echo "==> CBUILD_NAME_PREBUILD = $CBUILD_NAME"
+      - echo "==> CBUILD_NAME_PREBUILD = $GIT_NAME"
   build:
     commands:
       # Remove git folder
       #- rm -rf node_modules
-      - ./code-build-extras.sh
-
-      - export CBUILD_GIT_COMMIT_SHORT=`git log -1 --pretty=%h`
-      - export CBUILD_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
-      - export CBUILD_NAME="$CBUILD_GIT_BRANCH-$CBUILD_GIT_COMMIT_SHORT"
-
-      - echo "==> CBUILD_NAME_BEFORE_A = $CBUILD_NAME"
+      - echo "==> CBUILD_NAME_BEFORE_A = $GIT_NAME"
       - rm -rf .git
       #- npm install --production
-      - echo "==> CBUILD_NAME_BEFORE = $CBUILD_NAME"
+      - echo "==> CBUILD_NAME_BEFORE = $GIT_NAME"
       - echo "==> SAM_TEMPLATE_IN = $SAM_TEMPLATE_IN"
-      - echo "==> aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix $CBUILD_NAME --output-template-file $SAM_TEMPLATE_OUT"
-      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$CBUILD_NAME" --output-template-file $SAM_TEMPLATE_OUT
+      - echo "==> aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket $S3_BUCKET --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT"
+      - aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT
 artifacts:
   type: zip
   files:
