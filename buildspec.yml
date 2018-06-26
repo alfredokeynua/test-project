@@ -22,6 +22,11 @@ phases:
       # Remove git folder
       #- rm -rf node_modules
       - ./code-build-extras.sh
+
+      - export CBUILD_GIT_COMMIT_SHORT=`git log -1 --pretty=%h`
+      - export CBUILD_GIT_BRANCH=`git symbolic-ref HEAD --short 2>/dev/null`
+      - export CBUILD_NAME="$CBUILD_GIT_BRANCH-$CBUILD_GIT_COMMIT_SHORT"
+
       - echo "==> CBUILD_NAME_BEFORE_A = $CBUILD_NAME"
       - rm -rf .git
       #- npm install --production
