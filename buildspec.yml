@@ -17,7 +17,7 @@ phases:
       #- npm test
   build:
     commands:
-      - |
+      - >
         if expr "${GIT_PULL_REQUEST}" = 'false' >/dev/null; then
           # Build for production
           rm -rf node_modules
