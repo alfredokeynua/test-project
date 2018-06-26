@@ -52,10 +52,12 @@ phases:
           zip $ZIP_NAME.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
 
           # Upload the deployable
-          #aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+          #aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
 
           # Start the pipeline
           #aws codepipeline start-pipeline-execution --name $PIPELINE_NAME_PREFIX-$ZIP_NAME
         fi
 
-        - aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+        - aws configure list
+
+        - aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME.zip" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms --verbose
