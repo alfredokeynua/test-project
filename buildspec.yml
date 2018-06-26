@@ -16,7 +16,7 @@ phases:
       - cat commit.txt
 
       # Upgrade AWS CLI to the latest version
-      #- pip install --upgrade awscli
+      - pip install --upgrade awscli
 #  pre_build:
 #    commands:
       # Discover and run unit tests in the 'tests' directory
@@ -40,17 +40,36 @@ phases:
           rm README.md
 
           # Determine the deployable zip file name based on the branch
-          export ZIP_NAME="$GIT_BRANCH.zip"
+          export ENV_ID="$GIT_BRANCH"
+          if [ "$GIT_BRANCH" == "master" ] ; then
+            export ENV_ID="int"
+          fi
           if [ "$GIT_BRANCH" == "release-*" ] ; then
-            export ZIP_NAME="master.zip"
+            export ENV_ID="prod"
           fi
 
           # Package source code to S3 and generate Output SAM template
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
 
           # Zip the deployable
-          zip $ZIP_NAME $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
+          zip $ENV_ID.zip $SAM_TEMPLATE_IN $SAM_TEMPLATE_OUT commit.txt
 
           # Upload the deployable
-          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ZIP_NAME" --body $ZIP_NAME --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+          aws s3api put-object --bucket $S3_BUCKET --key "$S3_ARTIFACTS_PREFIX/$ENV_ID.zip" --body $ENV_ID.zip --ssekms-key-id $CODEBUILD_KMS_KEY_ID --server-side-encryption aws:kms
+        fi
+  post_build:
+    commands:
+      - |
+        export PIPELINE_NAME="$PIPELINE_NAME_PREFIX-$ENV_ID-pipeline"
+        if expr "${ENV_ID}" : "dev" >/dev/null; then
+          export PIPELINE_NAME=""
+        fi
+      - |
+        if expr "${GIT_PULL_REQUEST}" : "true" >/dev/null; then
+          export PIPELINE_NAME=""
+        fi
+      - |
+        if expr "${PIPELINE_NAME}" != "" >/dev/null; then
+          # Start the pipeline
+          aws codepipeline start-pipeline-execution --name $PIPELINE_NAME
         fi

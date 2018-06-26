@@ -1,52 +1,31 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Example template that creates a CodePipeline and deploys a project cross accounts.
-#Parameters:
-#  ProjectName:
-#    Description: Name of the Project
-#    Type: String
-#    Default: my-test-lambda
-#
-#  CodePipelinePreReqStackName:
-#    Description: The stack name of the CodePipeline Pre requisites
-#    Type: String
-#    Default: CodePipelinePreReq
-#
-#  GitHubOAuthToken:
-#    Description: Create a token with 'repo' and 'admin:repo_hook' permissions here https://github.com/settings/tokens
-#    Type: String
-#
-#  GitHubUser:
-#    Description: Enter GitHub username of the repository owner
-#    Type: String
-#
-#  GitHubRepository:
-#    Description: Enter the repository name that should be monitored for changes
-#    Type: String
-#
-#  GitHubBranch:
-#    Description: Enter the GitHub branch to monitor
-#    Type: String
-#    Default: master
-#
-#  DevelopmentAccountId:
-#    Description: AWS Development Account id
-#    Type: String
-#    Default: ""
-#
-#  IntegrationAccountId:
-#    Description: AWS Integration Account id
-#    Type: String
-#    Default: ""
-#
-#  StagingAccountId:
-#    Description: AWS Staging Account id
-#    Type: String
-#    Default: ""
-#
-#  ProductionAccountId:
-#    Description: AWS Production Account id
-#    Type: String
-#    Default: ""
+Parameters:
+  DevelopmentAccountId:
+    Description: AWS Development Account id
+    Type: String
+    Default: ""
+
+  IntegrationAccountId:
+    Description: AWS Integration Account id
+    Type: String
+    Default: ""
+
+  StagingAccountId:
+    Description: AWS Staging Account id
+    Type: String
+    Default: ""
+
+  ProductionAccountId:
+    Description: AWS Production Account id
+    Type: String
+    Default: ""
+
+Conditions:
+  CreateDevelopmentAccountPipeline: !Not [!Equals [ !Ref DevelopmentAccountId, "" ]]
+  CreateIntegrationAccountPipeline: !Not [!Equals [ !Ref IntegrationAccountId, "" ]]
+  CreateStagingAccountPipeline: !Not [!Equals [ !Ref StagingAccountId, "" ]]
+  CreateProductionAccountPipeline: !Not [!Equals [ !Ref ProductionAccountId, "" ]]
 
 Resources:
 
@@ -83,10 +62,266 @@ Resources:
             Value: "samTemplate.yaml"
           - Name: SAM_TEMPLATE_OUT
             Value: "outputSamTemplate.yaml"
+          - Name: PIPELINE_NAME_PREFIX
+            Value: !Sub "${AWS::StackName}"
       TimeoutInMinutes: 10
       Tags:
         - Key: Name
           Value: !Sub "${AWS::StackName}"
+
+  # Create a pipeline that deploys to 'dev' when pushing to the 'dev' branch
+  DevPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Condition: CreateDevelopmentAccountPipeline
+    Properties:
+      Name: !Sub "${AWS::StackName}-dev-pipeline"
+      RoleArn: !ImportValue "CI-CD-CodePipelineServiceRoleArn"
+      ArtifactStore:
+        Type: S3
+        Location: !ImportValue "CI-CD-ArtifactBucket"
+        EncryptionKey:
+          Id: !ImportValue "CI-CD-KMSKey"
+          Type: KMS
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: S3
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: S3
+              Configuration:
+                  S3Bucket: !ImportValue "CI-CD-ArtifactBucket"
+                  S3ObjectKey: !Sub "${AWS::StackName}/artifacts/dev.zip"
+                  PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+
+        - Name: DeployToDev
+          Actions:
+            - Name: CreateChangeSet
+              InputArtifacts:
+                - Name: BuildOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-dev"
+                ChangeSetName: !Sub "${AWS::StackName}-dev-change-set"
+                ActionMode: "CHANGE_SET_REPLACE"
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplatePath: BuildOutput::outputSamTemplate.yaml
+                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                ParameterOverrides: !Sub |
+                  {
+                    "EnvName": "dev"
+                  }
+              RunOrder: 1
+              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+            - Name: DeployChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-dev"
+                ChangeSetName: !Sub "${AWS::StackName}-dev-change-set"
+                ActionMode: CHANGE_SET_EXECUTE
+                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 2
+              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+
+  # Create a pipeline that deploys to 'int' when pushing to the 'master' branch
+  IntPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Condition: CreateIntegrationAccountPipeline
+    Properties:
+      Name: !Sub "${AWS::StackName}-int-pipeline"
+      RoleArn: !ImportValue "CI-CD-CodePipelineServiceRoleArn"
+      ArtifactStore:
+        Type: S3
+        Location: !ImportValue "CI-CD-ArtifactBucket"
+        EncryptionKey:
+          Id: !ImportValue "CI-CD-KMSKey"
+          Type: KMS
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: S3
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: S3
+              Configuration:
+                  S3Bucket: !ImportValue "CI-CD-ArtifactBucket"
+                  S3ObjectKey: !Sub "${AWS::StackName}/artifacts/int.zip"
+                  PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+
+        - Name: DeployToInt
+          Actions:
+            - Name: CreateChangeSet
+              InputArtifacts:
+                - Name: BuildOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-int"
+                ChangeSetName: !Sub "${AWS::StackName}-int-change-set"
+                ActionMode: "CHANGE_SET_REPLACE"
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplatePath: BuildOutput::outputSamTemplate.yaml
+                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                ParameterOverrides: !Sub |
+                  {
+                    "EnvName": "int"
+                  }
+              RunOrder: 1
+              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+            - Name: DeployChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-int"
+                ChangeSetName: !Sub "${AWS::StackName}-int-change-set"
+                ActionMode: CHANGE_SET_EXECUTE
+                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 2
+              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+  # Create a pipeline that deploys to 'stg' and 'prod' when pushing to the 'release-*' branch
+  DevPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Condition: CreateStagingAccountPipeline
+    Properties:
+      Name: !Sub "${AWS::StackName}-prod-pipeline"
+      RoleArn: !ImportValue "CI-CD-CodePipelineServiceRoleArn"
+      ArtifactStore:
+        Type: S3
+        Location: !ImportValue "CI-CD-ArtifactBucket"
+        EncryptionKey:
+          Id: !ImportValue "CI-CD-KMSKey"
+          Type: KMS
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: S3
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: S3
+              Configuration:
+                  S3Bucket: !ImportValue "CI-CD-ArtifactBucket"
+                  S3ObjectKey: !Sub "${AWS::StackName}/artifacts/prod.zip"
+                  PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 1
+
+        - Name: DeployToStg
+          Actions:
+            - Name: CreateChangeSet
+              InputArtifacts:
+                - Name: BuildOutput
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-stg"
+                ChangeSetName: !Sub "${AWS::StackName}-stg-change-set"
+                ActionMode: "CHANGE_SET_REPLACE"
+                Capabilities: CAPABILITY_NAMED_IAM
+                TemplatePath: BuildOutput::outputSamTemplate.yaml
+                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                ParameterOverrides: !Sub |
+                  {
+                    "EnvName": "stg"
+                  }
+              RunOrder: 1
+              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+            - Name: DeployChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                StackName: !Sub "${AWS::StackName}-stg"
+                ChangeSetName: !Sub "${AWS::StackName}-stg-change-set"
+                ActionMode: CHANGE_SET_EXECUTE
+                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+              InputArtifacts:
+                - Name: BuildOutput
+              RunOrder: 2
+              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+        - !If
+          - CreateProductionAccountPipeline
+          - Name: DeployToProd
+            Actions:
+              - Name: CreateChangeSet
+                InputArtifacts:
+                  - Name: BuildOutput
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  StackName: !Sub "${AWS::StackName}-prod"
+                  ChangeSetName: !Sub "${AWS::StackName}-prod-change-set"
+                  ActionMode: "CHANGE_SET_REPLACE"
+                  Capabilities: CAPABILITY_NAMED_IAM
+                  TemplatePath: BuildOutput::outputSamTemplate.yaml
+                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                  ParameterOverrides: !Sub |
+                    {
+                      "EnvName": "prod"
+                    }
+                RunOrder: 1
+                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+
+              - Name: DeployChangeSet
+                ActionTypeId:
+                  Category: Deploy
+                  Owner: AWS
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  StackName: !Sub "${AWS::StackName}-prod"
+                  ChangeSetName: !Sub "${AWS::StackName}-prod-change-set"
+                  ActionMode: CHANGE_SET_EXECUTE
+                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                InputArtifacts:
+                  - Name: BuildOutput
+                RunOrder: 2
+                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+          - !Ref AWS::NoValue
 
 #  Pipeline:
 #    Type: AWS::CodePipeline::Pipeline
