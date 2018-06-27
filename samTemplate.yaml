@@ -24,5 +24,23 @@ Resources:
         MyTimeApi:
           Type: Api
           Properties:
-            Path: /TimeResource
+            Path: /time
+            Method: GET
+  GreetingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs8.10
+      CodeUri: ./second
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: !If [UseCanary, Canary10Percent5Minutes, AllAtOnce]
+      Environment:
+        Variables:
+          THE_ENV_NAME: !Ref EnvName
+      Events:
+        MyTimeApi:
+          Type: Api
+          Properties:
+            Path: /greeting
             Method: GET
