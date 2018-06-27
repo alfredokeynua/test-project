@@ -22,10 +22,6 @@ Globals:
         ENV: !Ref EnvName
 
 Resources:
-  Api:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: live
 
   TimeFunction:
     Type: AWS::Serverless::Function
