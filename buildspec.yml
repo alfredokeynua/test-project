@@ -4,7 +4,11 @@ phases:
   install:
     commands:
       # Install dependencies needed for running tests
+      - cd second
       - npm install
+      - cd ../first
+      - npm install
+      - cd ../
 
       # Make sure we have GIT information as env variables
       - chmod +x ./code-build-extras.sh && ./code-build-extras.sh > __env_vars.sh && . ./__env_vars.sh && rm ./__env_vars.sh
@@ -60,18 +64,23 @@ phases:
       - |
         if expr "${ZIP_NAME}" != "" >/dev/null; then
           # Build for production
+          cd second
           rm -rf node_modules
           npm install --production
 
+          cd ../first
+          rm -rf node_modules
+          npm install --production
+
+          cd ..
+
           # Remove unnecessary files
-          rm -rf .git
-          rm code-build-extras.sh
-          rm ci-cd.yaml
-          rm buildspec.yml
-          rm .gitignore
-          rm package.json
-          rm package-lock.json
-          rm README.md
+#          rm -rf .git
+#          rm code-build-extras.sh
+#          rm ci-cd.yaml
+#          rm buildspec.yml
+#          rm .gitignore
+#          rm README.md
 
           # Package source code to S3 and generate Output SAM template
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID

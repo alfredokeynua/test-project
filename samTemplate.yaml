@@ -22,12 +22,15 @@ Globals:
         ENV: !Ref EnvName
 
 Resources:
-
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: live
 
   TimeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
+      CodeUri: ./first
       Events:
         Api:
           Type: Api
