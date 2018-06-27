@@ -7,39 +7,43 @@ Parameters:
     Type: String
 Conditions:
   UseCanary: !Equals [!Ref EnvName, prod]
+
+Globals:
+  Function:
+    Runtime: nodejs8.10
+    Timeout: 180
+    MemorySize: 128
+    Handler: index.handler
+    AutoPublishAlias: live
+    DeploymentPreference:
+      Type: !If [UseCanary, Canary10Percent5Minutes, AllAtOnce]
+    Environment:
+      Variables:
+        ENV: !Ref EnvName
+
 Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: live
+
   TimeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
-      Runtime: nodejs8.10
       CodeUri: ./
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: !If [UseCanary, Canary10Percent5Minutes, AllAtOnce]
-      Environment:
-        Variables:
-          THE_ENV_NAME: !Ref EnvName
       Events:
-        MyTimeApi:
+        Api:
           Type: Api
           Properties:
             Path: /time
             Method: GET
+
   GreetingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: index.handler
-      Runtime: nodejs8.10
       CodeUri: ./second
-      AutoPublishAlias: live
-      DeploymentPreference:
-        Type: !If [UseCanary, Canary10Percent5Minutes, AllAtOnce]
-      Environment:
-        Variables:
-          THE_ENV_NAME: !Ref EnvName
       Events:
-        MyTimeApi:
+        Api:
           Type: Api
           Properties:
             Path: /greeting
