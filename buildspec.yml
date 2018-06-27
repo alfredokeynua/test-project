@@ -75,12 +75,12 @@ phases:
           cd ..
 
           # Remove unnecessary files
-#          rm -rf .git
-#          rm code-build-extras.sh
-#          rm ci-cd.yaml
-#          rm buildspec.yml
-#          rm .gitignore
-#          rm README.md
+          # rm -rf .git
+          # rm code-build-extras.sh
+          # rm ci-cd.yaml
+          # rm buildspec.yml
+          # rm .gitignore
+          # rm README.md
 
           # Package source code to S3 and generate Output SAM template
           aws cloudformation package --template-file $SAM_TEMPLATE_IN --s3-bucket "$S3_BUCKET" --s3-prefix "$S3_BUILDS_PREFIX/$GIT_NAME" --output-template-file $SAM_TEMPLATE_OUT --kms-key-id $CODEBUILD_KMS_KEY_ID
