@@ -115,13 +115,13 @@ Resources:
                 ActionMode: "CHANGE_SET_REPLACE"
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplatePath: BuildOutput::outputSamTemplate.yaml
-                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/CloudFormationExecutionRole"
                 ParameterOverrides: !Sub |
                   {
                     "EnvName": "dev"
                   }
               RunOrder: 1
-              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/CodePipelineCloudFormationServiceRole"
 
             - Name: DeployChangeSet
               ActionTypeId:
@@ -133,11 +133,11 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-dev"
                 ChangeSetName: !Sub "${AWS::StackName}-dev-change-set"
                 ActionMode: CHANGE_SET_EXECUTE
-                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/CloudFormationExecutionRole"
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 2
-              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${DevelopmentAccountId}:role/CodePipelineCloudFormationServiceRole"
 
 
   # Create a pipeline that deploys to 'int' when pushing to the 'master' branch
@@ -186,13 +186,13 @@ Resources:
                 ActionMode: "CHANGE_SET_REPLACE"
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplatePath: BuildOutput::outputSamTemplate.yaml
-                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/CloudFormationExecutionRole"
                 ParameterOverrides: !Sub |
                   {
                     "EnvName": "int"
                   }
               RunOrder: 1
-              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/CodePipelineCloudFormationServiceRole"
 
             - Name: DeployChangeSet
               ActionTypeId:
@@ -204,11 +204,11 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-int"
                 ChangeSetName: !Sub "${AWS::StackName}-int-change-set"
                 ActionMode: CHANGE_SET_EXECUTE
-                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/CloudFormationExecutionRole"
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 2
-              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/CodePipelineCloudFormationServiceRole"
 
   # Create a pipeline that deploys to 'stg' and 'prod' when pushing to the 'release-*' branch
   DevPipeline:
@@ -256,13 +256,13 @@ Resources:
                 ActionMode: "CHANGE_SET_REPLACE"
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplatePath: BuildOutput::outputSamTemplate.yaml
-                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/CloudFormationExecutionRole"
                 ParameterOverrides: !Sub |
                   {
                     "EnvName": "stg"
                   }
               RunOrder: 1
-              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/CodePipelineCloudFormationServiceRole"
 
             - Name: DeployChangeSet
               ActionTypeId:
@@ -274,11 +274,11 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-stg"
                 ChangeSetName: !Sub "${AWS::StackName}-stg-change-set"
                 ActionMode: CHANGE_SET_EXECUTE
-                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/CloudFormationExecutionRole"
               InputArtifacts:
                 - Name: BuildOutput
               RunOrder: 2
-              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+              RoleArn: !Sub "arn:aws:iam::${StagingAccountId}:role/CodePipelineCloudFormationServiceRole"
 
         - !If
           - CreateProductionAccountPipeline
@@ -298,13 +298,13 @@ Resources:
                   ActionMode: "CHANGE_SET_REPLACE"
                   Capabilities: CAPABILITY_NAMED_IAM
                   TemplatePath: BuildOutput::outputSamTemplate.yaml
-                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/CloudFormationExecutionRole"
                   ParameterOverrides: !Sub |
                     {
                       "EnvName": "prod"
                     }
                 RunOrder: 1
-                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/CodePipelineCloudFormationServiceRole"
 
               - Name: DeployChangeSet
                 ActionTypeId:
@@ -316,11 +316,11 @@ Resources:
                   StackName: !Sub "${AWS::StackName}-prod"
                   ChangeSetName: !Sub "${AWS::StackName}-prod-change-set"
                   ActionMode: CHANGE_SET_EXECUTE
-                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+                  RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/CloudFormationExecutionRole"
                 InputArtifacts:
                   - Name: BuildOutput
                 RunOrder: 2
-                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole"
+                RoleArn: !Sub "arn:aws:iam::${ProductionAccountId}:role/CodePipelineCloudFormationServiceRole"
           - !Ref AWS::NoValue
 
 #  Pipeline:
@@ -385,13 +385,13 @@ Resources:
 #                StackName: !Sub "${ProjectName}-int"
 #                Capabilities: CAPABILITY_NAMED_IAM
 #                TemplatePath: BuildOutput::outputSamTemplate.yaml
-#                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole"
+#                RoleArn: !Sub "arn:aws:iam::${IntegrationAccountId}:role/CloudFormationExecutionRole"
 #                ParameterOverrides: !Sub |
 #                  {
 #                    "EnvName": "int"
 #                  }
 #              RunOrder: 1
-#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/CodePipelineCloudFormationServiceRole
 #
 #            - Name: DeployChangeSetInt
 #              ActionTypeId:
@@ -403,11 +403,11 @@ Resources:
 #                ChangeSetName: !Sub ${ProjectName}-int-change-set
 #                ActionMode: CHANGE_SET_EXECUTE
 #                StackName: !Sub ${ProjectName}-int
-#                RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#                RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/CloudFormationExecutionRole
 #              InputArtifacts:
 #                - Name: BuildOutput
 #              RunOrder: 2
-#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#              RoleArn: !Sub arn:aws:iam::${IntegrationAccountId}:role/CodePipelineCloudFormationServiceRole
 #
 #        - Name: DeployToStaging
 #          Actions:
@@ -427,11 +427,11 @@ Resources:
 #                  {
 #                    "EnvName": "THIS_IS_STAGING"
 #                  }
-#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/CloudFormationExecutionRole
 #              InputArtifacts:
 #                - Name: BuildOutput
 #              RunOrder: 1
-#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/CodePipelineCloudFormationServiceRole
 #
 #            - Name: DeployChangeSetStg
 #              ActionTypeId:
@@ -443,9 +443,9 @@ Resources:
 #                ChangeSetName: !Sub ${ProjectName}-stg-change-set
 #                ActionMode: CHANGE_SET_EXECUTE
 #                StackName: !Sub ${ProjectName}-stg
-#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationExecutionRole
+#                RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/CloudFormationExecutionRole
 #              InputArtifacts:
 #                - Name: BuildOutput
 #              RunOrder: 2
-#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/OpsAccountCodePipelineCloudFormationServiceRole
+#              RoleArn: !Sub arn:aws:iam::${StagingAccountId}:role/CodePipelineCloudFormationServiceRole
 #
